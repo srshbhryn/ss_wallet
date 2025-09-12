@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"wallet/lib/deposits/repository/internal"
 
 	"gorm.io/gorm"
@@ -9,8 +10,8 @@ import (
 type Deposit = internal.Deposit
 
 type Repo interface {
-	Create(*Deposit) error
-	Update(*Deposit) error
+	Create(context.Context, *Deposit) error
+	Update(context.Context, *Deposit) error
 
 	GetDBTransaction() *gorm.DB
 	Commit() error
