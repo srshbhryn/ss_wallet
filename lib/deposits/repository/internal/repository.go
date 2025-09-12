@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type depositRepo struct {
@@ -53,13 +54,12 @@ func (r *depositRepo) RollBack() error {
 func (r *depositRepo) GetApplicableDeposits(ctx context.Context, IDPrefix string) ([]Deposit, error) {
 	var deposits []Deposit
 
-	err := r.tx.WithContext(ctx).
+	if err := r.tx.WithContext(ctx).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id::text LIKE ?", IDPrefix+"%").
 		Where("apply_at < NOW()").
 		Where("apply_transaction_id = 0").
-		Find(&deposits).Error
-
-	if err != nil {
+		Find(&deposits).Error; err != nil {
 		return nil, err
 	}
 
