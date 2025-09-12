@@ -32,7 +32,7 @@ type WalletRepo interface {
 
 type TransactionRepo interface {
 	Get(ctx context.Context, userID uuid.UUID, pageNumber int, pageSize int) (transactions []Transaction, hasMore bool, err error)
-	Create(ctx context.Context, trx Transaction) error
+	Create(ctx context.Context, trx *Transaction) error
 }
 
 func NewFactory(db *gorm.DB) RepoFactory {

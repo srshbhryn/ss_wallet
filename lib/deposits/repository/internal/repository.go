@@ -13,11 +13,11 @@ func NewDepositRepo(tx *gorm.DB) *depositRepo {
 	return &depositRepo{tx: tx}
 }
 
-func (r *depositRepo) Create(dep Deposit) error {
-	return r.tx.Create(&dep).Error
+func (r *depositRepo) Create(dep *Deposit) error {
+	return r.tx.Create(dep).Error
 }
 
-func (r *depositRepo) Update(dep Deposit) error {
+func (r *depositRepo) Update(dep *Deposit) error {
 	return r.tx.Model(&Deposit{}).
 		Where("id = ?", dep.ID).
 		Updates(dep).Error

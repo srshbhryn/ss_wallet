@@ -55,6 +55,6 @@ func (r *transactionRepo) Get(ctx context.Context, userID uuid.UUID, pageNumber 
 	return transactions, hasMore, nil
 }
 
-func (r *transactionRepo) Create(ctx context.Context, trx Transaction) error {
-	return r.tx.WithContext(ctx).Create(&trx).Error
+func (r *transactionRepo) Create(ctx context.Context, trx *Transaction) error {
+	return r.tx.WithContext(ctx).Create(trx).Error
 }

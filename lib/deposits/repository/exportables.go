@@ -9,8 +9,8 @@ import (
 type Deposit = internal.Deposit
 
 type Repo interface {
-	Create(Deposit) error
-	Update(Deposit) error
+	Create(*Deposit) error
+	Update(*Deposit) error
 
 	GetDBTransaction() *gorm.DB
 	Commit() error
