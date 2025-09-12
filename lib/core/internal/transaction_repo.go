@@ -35,7 +35,7 @@ func (r *transactionRepo) Get(ctx context.Context, userID uuid.UUID, pageNumber 
 	// count total transactions for pagination
 	if err := r.tx.WithContext(ctx).
 		Model(&Transaction{}).
-		Where("wallet_id = ?", wallet.ID).
+		Where("wallet_id = ?", wallet.UserID).
 		Count(&count).Error; err != nil {
 		return nil, false, err
 	}
@@ -43,7 +43,7 @@ func (r *transactionRepo) Get(ctx context.Context, userID uuid.UUID, pageNumber 
 	// fetch transactions with offset/limit
 	offset := (pageNumber - 1) * pageSize
 	if err := r.tx.WithContext(ctx).
-		Where("wallet_id = ?", wallet.ID).
+		Where("wallet_id = ?", wallet.UserID).
 		Order("id DESC").
 		Offset(offset).
 		Limit(pageSize).
