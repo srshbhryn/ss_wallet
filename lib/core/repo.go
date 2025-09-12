@@ -1,7 +1,7 @@
-package repository
+package core
 
 import (
-	"wallet/lib/core/repository/internal"
+	"wallet/lib/core/internal"
 
 	"gorm.io/gorm"
 )

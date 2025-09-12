@@ -1,8 +1,8 @@
-package repository
+package core
 
 import (
 	"context"
-	"wallet/lib/core/repository/internal"
+	"wallet/lib/core/internal"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
