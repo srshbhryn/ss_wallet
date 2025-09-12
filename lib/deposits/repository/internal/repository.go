@@ -45,3 +45,23 @@ func (r *depositRepo) Commit() error {
 func (r *depositRepo) RollBack() error {
 	return r.tx.Rollback().Error
 }
+
+// GetApplicableDeposits fetches deposits that:
+// - ID starts with IDPrefix
+// - ApplyAt is before now
+// - ApplyTransactionID = 0
+func (r *depositRepo) GetApplicableDeposits(ctx context.Context, IDPrefix string) ([]Deposit, error) {
+	var deposits []Deposit
+
+	err := r.tx.WithContext(ctx).
+		Where("id::text LIKE ?", IDPrefix+"%").
+		Where("apply_at < NOW()").
+		Where("apply_transaction_id = 0").
+		Find(&deposits).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return deposits, nil
+}

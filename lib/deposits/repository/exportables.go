@@ -12,6 +12,7 @@ type Deposit = internal.Deposit
 type Repo interface {
 	Create(context.Context, *Deposit) error
 	Update(context.Context, *Deposit) error
+	GetApplicableDeposits(ctx context.Context, IDPrefix string) ([]Deposit, error)
 
 	GetDBTransaction() *gorm.DB
 	Commit() error
