@@ -18,13 +18,13 @@ func NewWalletRepo(tx *gorm.DB) *walletRepo {
 	return &walletRepo{tx: tx}
 }
 
+// GetOrCreate fetches wallet by userID, creates if not exists.
 func (r *walletRepo) GetOrCreate(ctx context.Context, userID uuid.UUID) (*Wallet, error) {
 	var wallet Wallet
 
 	err := r.tx.WithContext(ctx).First(&wallet, "user_id = ?", userID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		wallet = Wallet{
-			ID:               uuid.New(),
 			UserID:           userID,
 			AvailableBalance: 0,
 			BlockedBalance:   0,
@@ -39,9 +39,11 @@ func (r *walletRepo) GetOrCreate(ctx context.Context, userID uuid.UUID) (*Wallet
 	if err != nil {
 		return nil, err
 	}
+
 	return &wallet, nil
 }
 
+// GetOrCreateForUpdate fetches wallet with row-level locking.
 func (r *walletRepo) GetOrCreateForUpdate(ctx context.Context, userID uuid.UUID) (*Wallet, error) {
 	var wallet Wallet
 
@@ -51,7 +53,6 @@ func (r *walletRepo) GetOrCreateForUpdate(ctx context.Context, userID uuid.UUID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		wallet = Wallet{
-			ID:               uuid.New(),
 			UserID:           userID,
 			AvailableBalance: 0,
 			BlockedBalance:   0,
@@ -63,6 +64,7 @@ func (r *walletRepo) GetOrCreateForUpdate(ctx context.Context, userID uuid.UUID)
 		}
 		return &wallet, nil
 	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -70,14 +72,15 @@ func (r *walletRepo) GetOrCreateForUpdate(ctx context.Context, userID uuid.UUID)
 	return &wallet, nil
 }
 
+// Update updates balances and updated_at
 func (r *walletRepo) Update(ctx context.Context, wallet *Wallet) error {
 	wallet.UpdatedAt = time.Now()
 	return r.tx.WithContext(ctx).
 		Model(&Wallet{}).
-		Where("id = ?", wallet.ID).
+		Where("user_id = ?", wallet.UserID).
 		Updates(map[string]any{
 			"available_balance": wallet.AvailableBalance,
 			"blocked_balance":   wallet.BlockedBalance,
-			"updated_at":        time.Now(),
+			"updated_at":        wallet.UpdatedAt,
 		}).Error
 }

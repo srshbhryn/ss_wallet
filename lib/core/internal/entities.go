@@ -7,8 +7,7 @@ import (
 )
 
 type Wallet struct {
-	ID               uuid.UUID `gorm:"type:uuid;primaryKey"`
-	UserID           uuid.UUID `gorm:"index"`
+	UserID           uuid.UUID `gorm:"type:uuid;primaryKey"`
 	AvailableBalance int64     `gorm:"not null;default:0"`
 	BlockedBalance   int64     `gorm:"not null;default:0"`
 	CreatedAt        time.Time
