@@ -12,7 +12,7 @@ import (
 	"github.com/natefinch/lumberjack"
 )
 
-var GitCommit string
+var GitCommit = "dev" // overwritten by -ldflags
 
 var logger *slog.Logger
 
