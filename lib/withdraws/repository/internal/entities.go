@@ -8,15 +8,15 @@ import (
 )
 
 type Withdrawal struct {
-	ID                      uuid.UUID          `gorm:"type:uuid;primaryKey"`
-	WalletID                uuid.UUID          `gorm:"type:uuid;index"`
-	Status                  enums.PayoutStatus `gorm:"type:varchar(32);index"`
-	Bank                    enums.BankType     `gorm:"type:varchar(32);index"`
-	Iban                    string             `gorm:"type:varchar(24);not null;index"`
-	BlockTransactionID      uint64             `gorm:"index"`
-	WithdrawalTransactionID uint64             `gorm:"index"`
-	ReverserTransactionID   uint64             `gorm:"index"`
-	Amount                  int64              `gorm:"not null"`
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
+	ID                      uuid.UUID          `gorm:"type:uuid;primaryKey" json:"id"`
+	WalletID                uuid.UUID          `gorm:"type:uuid;index" json:"wallet_id"`
+	Status                  enums.PayoutStatus `gorm:"type:varchar(32);index" json:"status"`
+	Bank                    enums.BankType     `gorm:"type:varchar(32);index" json:"bank"`
+	Iban                    string             `gorm:"type:varchar(24);not null;index" json:"iban"`
+	BlockTransactionID      uint64             `gorm:"index" json:"block_transaction_id"`
+	WithdrawalTransactionID uint64             `gorm:"index" json:"withdrawal_transaction_id"`
+	ReverserTransactionID   uint64             `gorm:"index" json:"reverser_transaction_id"`
+	Amount                  int64              `gorm:"not null" json:"amount"`
+	CreatedAt               time.Time          `json:"created_at"`
+	UpdatedAt               time.Time          `json:"updated_at"`
 }
