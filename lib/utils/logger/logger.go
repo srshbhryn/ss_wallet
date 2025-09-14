@@ -17,7 +17,7 @@ var GitCommit = "dev" // overwritten by -ldflags
 var logger *slog.Logger
 
 func init() {
-	initLogger(os.Args[len(os.Args)-1])
+	initLogger(filepath.Base(os.Args[0]))
 }
 
 func Get() *slog.Logger {
