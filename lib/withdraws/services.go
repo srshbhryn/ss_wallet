@@ -33,7 +33,7 @@ func (s *service) Create(ctx context.Context, withdraw *Withdrawal) error {
 	wallet.AvailableBalance -= withdraw.Amount
 	wallet.BlockedBalance += withdraw.Amount
 	if err := coreRepo.Wallet().Update(ctx, wallet); err != nil {
-		return nil
+		return err
 	}
 	if err := withdrawRepo.Create(ctx, withdraw); err != nil {
 		return err
