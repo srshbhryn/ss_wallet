@@ -42,7 +42,7 @@ type Config struct {
 	Prefix        string
 	SleepInterval time.Duration
 	Bank          string
-	BankConfig    any
+	BankConfig    map[string]any
 	Worker        WorkerConfig
 }
 
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// init repo
-	withdrawRepoFactory := repository.NewFactory(db)
+	withdrawRepoFactory := repository.NewFactory(db) //TODO shouldn't I use service instead of repo????
 
 	// init bank client
 	client, err := integrations.NewBankClient(enums.BankType(conf.Bank), conf.BankConfig)

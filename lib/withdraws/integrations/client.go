@@ -3,6 +3,8 @@ package integrations
 import (
 	"wallet/lib/withdraws/enums"
 	"wallet/lib/withdraws/integrations/internal/dummy"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 type DummyConfig = dummy.Config
@@ -15,8 +17,8 @@ type BankClient interface {
 func NewBankClient(Type enums.BankType, config any) (BankClient, error) {
 	switch Type {
 	case enums.DUMMY:
-		cfg, ok := config.(DummyConfig)
-		if !ok {
+		var cfg dummy.Config
+		if err := mapstructure.Decode(config, &cfg); err != nil {
 			return nil, ErrInvalidConfig
 		}
 		return dummy.New(cfg), nil
