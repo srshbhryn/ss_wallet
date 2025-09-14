@@ -1,0 +1,2 @@
+dsn: "postgres://postgres:postgres@localhost:5432/wallet?sslmode=disable"
+bind_at: 8080

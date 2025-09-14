@@ -1,0 +1,9 @@
+dsn: "postgres://postgres:postgres@localhost:5432/wallet?sslmode=disable"
+bank_type: "DUMMY"
+bank_config:
+  api_key: "test"
+worker:
+  poll_interval: "5s"
+  concurrency: 4
+  backoff: "2s"
+  retries: 3

@@ -1,0 +1,3 @@
+dsn: "postgres://postgres:postgres@localhost:5432/wallet?sslmode=disable"
+id_prefix: ""     # optional filter; "" means no prefix filter
+sleep: "5s"

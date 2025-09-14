@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  migrator:
+    image: ss_wallet
+    depends_on:
+      - db
+    command: ["goose", "up"]
+    environment:
+      DB_DSN: postgres://postgres:postgres@db:5432/wallet?sslmode=disable
+
+  rest:
+    image: ss_wallet
+    depends_on:
+      - db
+    environment:
+      CONFIG_PATH: /config.yaml
+    volumes:
+      - ./rest.yaml:/config.yaml:ro
+    ports:
+       - "8080:8080"
+    command: ["rest"]
+
+  deposit_applier:
+    image: ss_wallet
+    depends_on:
+      - db
+    environment:
+      CONFIG_PATH: /config.yaml
+    volumes:
+      - ./deposit_applier.yaml:/config.yaml:ro
+    command: ["deposit_applier"]
+
+  banker:
+    image: ss_wallet
+    depends_on:
+      - db
+    environment:
+      CONFIG_PATH: /config.yaml
+    volumes:
+      - ./banker.yaml:/config.yaml:ro
+    command: ["banker"]
+
+
+volumes:
+  dbdata:
