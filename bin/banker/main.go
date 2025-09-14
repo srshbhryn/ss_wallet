@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"wallet/lib/config"
+	"wallet/lib/core"
 	"wallet/lib/utils"
 	"wallet/lib/utils/db"
 	"wallet/lib/utils/logger"
@@ -57,7 +58,6 @@ func main() {
 	// load config
 	conf := Config{}
 	config.Load(&conf)
-	conf.FillDefaults()
 
 	// init DB
 	db, err := db.Connect(conf.DbDsn)
@@ -66,8 +66,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// init repo
-	withdrawRepoFactory := repository.NewFactory(db) //TODO shouldn't I use service instead of repo????
+	coreRepoFactory := core.NewFactory(db)
+	withdrawRepoFactory := repository.NewFactory(db)
+	service := withdraws.NewService(coreRepoFactory, withdrawRepoFactory)
 
 	// init bank client
 	client, err := integrations.NewBankClient(enums.BankType(conf.Bank), conf.BankConfig)
@@ -77,10 +78,8 @@ func main() {
 	}
 
 	// init worker with updateStatus callback
-	wrk := withdraws.NewWorker(
-		func(ctx context.Context, wd *withdraws.Withdrawal) error {
-			return withdrawRepoFactory.New(nil).Update(ctx, wd)
-		},
+	worker := withdraws.NewWorker(
+		service,
 		conf.Worker.Concurrency,
 		conf.Worker.BackOff,
 		conf.Worker.RetryCount,
@@ -100,8 +99,8 @@ func main() {
 	}()
 
 	// start worker pool
-	wrk.Run(ctx)
-	defer wrk.Stop()
+	worker.Run(ctx)
+	defer worker.Stop()
 
 	logger.Get().Info("withdraw worker started",
 		"prefix", conf.Prefix,
@@ -116,7 +115,9 @@ func main() {
 			logger.Get().Info("exiting loop")
 			return
 		default:
-			err := processWithdraws(ctx, wrk, withdrawRepoFactory.New(nil), conf.Prefix, enums.BankType(conf.Bank))
+			err := processWithdraws(ctx, worker, func(c context.Context) ([]withdraws.Withdrawal, error) {
+				return withdrawRepoFactory.New(nil).GetUnFinishedWithdraws(c, conf.Prefix, enums.BankType(conf.Bank))
+			})
 			if err != nil {
 				logger.Get().Error("error processing withdraws", "err", utils.Stringify(err))
 			}
@@ -127,12 +128,10 @@ func main() {
 
 func processWithdraws(
 	ctx context.Context,
-	wrk withdraws.Worker,
-	repo repository.Repo,
-	prefix string,
-	bank enums.BankType,
+	worker withdraws.Worker,
+	getUnfinishedWithdraws func(context.Context) ([]withdraws.Withdrawal, error),
 ) error {
-	withdraws, err := repo.GetUnFinishedWithdraws(ctx, prefix, bank)
+	withdraws, err := getUnfinishedWithdraws(ctx)
 	if err != nil {
 		return err
 	}
@@ -142,14 +141,14 @@ func processWithdraws(
 
 		switch wd.Status {
 		case enums.NEW:
-			if err := wrk.SendToBank(ctx, &wd); err != nil {
+			if err := worker.SendToBank(ctx, &wd); err != nil {
 				log.Error("failed to enqueue withdrawal send", "err", utils.Stringify(err))
 			} else {
 				log.Info("enqueued withdrawal send")
 			}
 
 		case enums.SENT:
-			if err := wrk.GetStatus(ctx, &wd); err != nil {
+			if err := worker.GetStatus(ctx, &wd); err != nil {
 				log.Error("failed to enqueue withdrawal status check", "err", utils.Stringify(err))
 			} else {
 				log.Info("enqueued withdrawal status check")

@@ -23,11 +23,11 @@ type job struct {
 }
 
 type worker struct {
-	updateStatus func(context.Context, *Withdrawal) error
-	concurrency  int
-	backOff      time.Duration
-	retryCount   int
-	client       integrations.BankClient
+	service     Service
+	concurrency int
+	backOff     time.Duration
+	retryCount  int
+	client      integrations.BankClient
 
 	jobs chan job
 	done chan struct{}
@@ -85,11 +85,23 @@ func (w *worker) doSend(ctx context.Context, wd *Withdrawal) error {
 		status, e = w.client.Send(wd.Iban, wd.Amount, wd.ID.String())
 		return e
 	})
+	if errors.Is(err, integrations.ErrDuplicatePayout) {
+		w.service.MarkAsSent(ctx, wd)
+		return nil
+	}
 	if err != nil {
 		return err
 	}
-	wd.Status = status
-	return w.updateStatus(ctx, wd)
+	if status == enums.SUCCESS {
+		return w.service.Complete(ctx, wd)
+	}
+	if status == enums.FAILED {
+		return w.service.Reverse(ctx, wd)
+	}
+	if status == enums.SENT {
+		return w.service.MarkAsSent(ctx, wd)
+	}
+	return nil
 }
 
 func (w *worker) doCheck(ctx context.Context, wd *Withdrawal) error {
@@ -102,8 +114,13 @@ func (w *worker) doCheck(ctx context.Context, wd *Withdrawal) error {
 	if err != nil {
 		return err
 	}
-	wd.Status = status
-	return w.updateStatus(ctx, wd)
+	if status == enums.SUCCESS {
+		return w.service.Complete(ctx, wd)
+	}
+	if status == enums.FAILED {
+		return w.service.Reverse(ctx, wd)
+	}
+	return nil
 }
 
 func (w *worker) SendToBank(ctx context.Context, wd *Withdrawal) error {

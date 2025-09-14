@@ -35,19 +35,19 @@ type Worker interface {
 }
 
 func NewWorker(
-	updateStatus func(context.Context, *Withdrawal) error,
+	service Service,
 	concurrency int,
 	backOff time.Duration,
 	retryCount int,
 	client integrations.BankClient,
 ) Worker {
 	return &worker{
-		updateStatus: updateStatus,
-		concurrency:  concurrency,
-		backOff:      backOff,
-		retryCount:   retryCount,
-		client:       client,
-		jobs:         make(chan job),
-		done:         make(chan struct{}),
+		service:     service,
+		concurrency: concurrency,
+		backOff:     backOff,
+		retryCount:  retryCount,
+		client:      client,
+		jobs:        make(chan job),
+		done:        make(chan struct{}),
 	}
 }
